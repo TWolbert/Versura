@@ -8,8 +8,7 @@ export default function getAppKey() {
     if (appKey.startsWith('base64:')) {
         // Decode the base64 encoded app key
         const base64Key = appKey.split(':')[1];
-        const decodedKey = Buffer.from(base64Key, 'base64').toString('utf-8');
-        return decodedKey;
+        return base64Key;
     }
     else {
         // Return the app key as is
