@@ -4,7 +4,8 @@ import { StandardResponse } from "@/utils/StandardResponse";
 
 export async function GET() {
     return StandardResponse({
-        data: await new Cache().func("upgrades", async () => {
+        status: 'success',
+        upgrades: await new Cache().func("upgrades", async () => {
             return await Upgrades.all();
         }, 300)
     });
