@@ -861,10 +861,7 @@ export async function seedUpgrades() {
                 type: effect.type
             }));
 
-            console.log("Inserting upgrade effects", seedsWithFK);
-
             for (const seed of seedsWithFK) {
-                console.log("Inserting upgrade effect", seed);
                 await tx.insert(upgradeEffectsTable).values({
                     upgradeId: seed.upgradeId,
                     stat: seed.stat,
