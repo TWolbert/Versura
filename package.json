@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:seed:upgrades": "bun db/seeders/UpgradeSeeder.ts"
   },
   "dependencies": {
     "@types/crypto-js": "^4.2.2",

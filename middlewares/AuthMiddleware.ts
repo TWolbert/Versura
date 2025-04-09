@@ -1,5 +1,4 @@
 import { db } from "@/db";
-import { steamUsersTable } from "@/db/schema";
 import getAppKey from "@/utils/AppKey";
 import { decryptWithJose } from "@/utils/Crypto";
 import { eq } from "drizzle-orm";
