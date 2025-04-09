@@ -1,14 +1,5 @@
 // redisClient.ts
 import Redis from 'ioredis';
-
-type RedisOptions = {
-  host?: string;
-  port?: number;
-  password?: string;
-  db?: number;
-  keyPrefix?: string;
-};
-
 class Cache {
   private client: Redis;
 
