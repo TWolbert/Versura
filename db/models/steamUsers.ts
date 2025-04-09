@@ -15,3 +15,5 @@ export const steamUsersTable = pgTable("steam_users", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+export type SteamUser = typeof steamUsersTable.$inferSelect;

@@ -1,4 +1,5 @@
 import { decimal, integer, numeric, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { db } from "..";
 
 export const upgradesTable = pgTable("upgrades", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -17,3 +18,11 @@ export const upgradesTable = pgTable("upgrades", {
         .defaultNow()
         .$onUpdate(() => new Date()),
 });
+
+export type Upgrade = typeof upgradesTable.$inferSelect;
+
+export class Upgrades {
+    static all() {
+        return db.select().from(upgradesTable);
+    }
+}

@@ -12,13 +12,8 @@ type RedisOptions = {
 class Cache {
   private client: Redis;
 
-  constructor(options?: RedisOptions) {
-    this.client = new Redis({
-      host: options?.host || '127.0.0.1',
-      port: options?.port || 6379,
-      password: options?.password,
-      db: options?.db || 0,
-      keyPrefix: options?.keyPrefix || '',
+  constructor() {
+    this.client = new Redis(process.env.VALKEY_URL || 'redis://localhost:6379', {
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         console.warn(`[Redis] Reconnecting in ${delay}ms...`);
@@ -79,6 +74,18 @@ class Cache {
       console.error(`[Redis] Failed to delete key "${key}":`, err);
       return 0;
     }
+  }
+
+  public async func<T>(key: string, func: (value: T) => T, ttlInSeconds: number = 5): Promise<T> {
+    if (await this.exists(key)) {
+      const value = await this.get(key);
+      if (value) {
+        return JSON.parse(value) as T;
+      }
+    }
+    const newValue = await func({} as T);
+    await this.set(key, JSON.stringify(newValue), ttlInSeconds);
+    return newValue;
   }
 
   public getClient(): Redis {
