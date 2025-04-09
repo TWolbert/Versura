@@ -76,19 +76,19 @@ class Cache {
     }
   }
 
-  public async func<T>(key: string, func: (value: T) => T, ttlInSeconds: number = 5): Promise<T> {
+  public async func<T, A>(key: string, func: (value: A) => T, ttlInSeconds: number = 5): Promise<T> {
     // Try get key
     const cachedValue = await this.get(key);
     if (cachedValue) {
       try {
-        return JSON.parse(cachedValue) as T;;
+        return JSON.parse(cachedValue) as T;
       } catch (err) {
         console.error(`[Redis] Failed to parse cached value for key "${key}":`, err);
         await this.del(key);
       }
     }
 
-    const newValue = await func({} as T);
+    const newValue = await func({} as A);
     await this.set(key, JSON.stringify(newValue), ttlInSeconds);
     return newValue;
   }
