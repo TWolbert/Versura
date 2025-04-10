@@ -9,7 +9,7 @@ function constantTimeCompare(a: string, b: string): boolean {
   return result === 0;
 }
 
-export async function verifyGodotRequest(req: Request): Promise<boolean> {
+export async function GameMiddleware(req: Request): Promise<boolean> {
   const isDev = process.env.APP_ENV === "local";
   if (isDev) {
     return true;
