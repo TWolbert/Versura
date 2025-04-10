@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import getAppKey from "@/utils/AppKey";
-import { decryptWithJose } from "@/utils/Crypto";
+import { decryptWithWebCrypto } from "@/utils/Crypto";
 import { eq } from "drizzle-orm";
 
 export async function AuthMidddleware(request: Request) {
@@ -16,7 +16,7 @@ export async function AuthMidddleware(request: Request) {
         return false;
     }
 
-    const decrypted = await decryptWithJose(token, getAppKey());
+    const decrypted = await decryptWithWebCrypto(token, getAppKey());
     console.log(decrypted);
 
     // Check if the decrypted token is empty

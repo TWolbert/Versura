@@ -1,35 +1,50 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AuthMidddleware } from './middlewares/AuthMiddleware';
+import { AuthMidddleware } from './middlewares/AuthMiddleware'
+import { StandardResponse } from './utils/StandardResponse'
+
+const isDev = process.env.APP_ENV === 'local'
 
 export const config = {
     matcher: '/:path*',
 }
 
-const authProtectedPaths = [
-    '/test',
-];
+enum AuthType {
+    auth = 'auth',
+    game = 'game',
+}
 
-// This function can be marked `async` if using `await` inside
+const authRules: Record<AuthType, string[]> = {
+    auth: ['/test'],
+    game: ['/test'],
+}
+
+const getAuthTypeForPath = (pathname: string): 'auth' | 'game' | null => {
+    for (const [type, paths] of Object.entries(authRules)) {
+        if (paths.some(path => pathname.startsWith(path))) {
+            return type as AuthType
+        }
+    }
+    return null
+}
+
 export async function middleware(request: NextRequest) {
-    // Check if the request is for a protected path
-    const isProtectedPath = authProtectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
-    if (isProtectedPath) {
-        const res = await AuthMidddleware(request);
-        if (!res) {
-            // Return 401 Unauthorized response
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                {
-                    status: 401,
-                    statusText: 'Unauthorized',
-                    headers: {
-                        'WWW-Authenticate': 'Bearer',
-                    },
-                }
+    const path = request.nextUrl.pathname
+    const authType = getAuthTypeForPath(path)
+
+    if (authType) {
+        const isAuthorized = await AuthMidddleware(request)
+        if (!isAuthorized) {
+
+            const errorMessage = isDev ? `Unauthorized access to ${path} because of missing or invalid ${authType} token` : `Unauthorized access to ${path}`
+
+            return StandardResponse(
+                { error: errorMessage },
+                401,
+                'Unauthorized'
             )
         }
     }
-    
+
     return NextResponse.next()
 }
