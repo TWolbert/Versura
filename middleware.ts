@@ -10,28 +10,22 @@ export const config = {
     matcher: '/:path*',
 }
 
-// Define known middleware identifiers
 enum MiddlewareType {
     Auth = 'auth',
     Game = 'game',
 }
 
-// Middleware function signature
 type MiddlewareFn = (req: NextRequest) => Promise<boolean>
 
-// Central registry of all middleware implementations
 const middlewareRegistry: Record<MiddlewareType, MiddlewareFn> = {
     [MiddlewareType.Auth]: AuthMidddleware,
     [MiddlewareType.Game]: GameMiddleware,
 }
 
-// Map paths to arrays of middleware types
 const routeMiddlewareMap: Record<string, MiddlewareType[]> = {
     '/test': [MiddlewareType.Auth, MiddlewareType.Game],
-    // add more paths and middleware combos here
 }
 
-// Get all applicable middlewares for a given path
 const getMiddlewaresForPath = (pathname: string): MiddlewareType[] => {
     for (const [routePrefix, middlewareList] of Object.entries(routeMiddlewareMap)) {
         if (pathname.startsWith(routePrefix)) {
@@ -41,7 +35,6 @@ const getMiddlewaresForPath = (pathname: string): MiddlewareType[] => {
     return []
 }
 
-// Error response helpers
 const handleUnauthorized = (path: string, reason: string) =>
     StandardResponse(
         { error: isDev ? `Unauthorized access to ${path} due to ${reason}` : `Unauthorized access to ${path}` },
