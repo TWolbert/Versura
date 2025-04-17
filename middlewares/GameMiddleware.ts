@@ -15,6 +15,8 @@ export async function GameMiddleware(req: Request): Promise<boolean> {
     return true;
   }
 
+  console.log("GameMiddleware");
+
   const encryptedToken = req.headers.get("X-Game-Signature");
   const timestamp = req.headers.get("X-Timestamp");
   const keyString = process.env.GAME_API_SECRET;

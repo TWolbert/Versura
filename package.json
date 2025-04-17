@@ -10,7 +10,9 @@
     "db:seed:upgrades": "bun db/seeders/UpgradeSeeder.ts"
   },
   "dependencies": {
+    "@types/axios": "^0.14.4",
     "@types/crypto-js": "^4.2.2",
+    "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
     "ioredis": "^5.6.0",
@@ -20,6 +22,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-toastify": "^11.0.5",
+    "steam-session": "^1.9.2",
+    "steam-webapi": "^0.6.5",
+    "steamapi": "^3.1.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {

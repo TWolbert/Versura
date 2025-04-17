@@ -1,7 +1,4 @@
-import { db } from "@/db";
-import getAppKey from "@/utils/AppKey";
-import { decryptWithWebCrypto } from "@/utils/Crypto";
-import { eq } from "drizzle-orm";
+import { verifySteamToken } from "@/utils/SteamToken";
 
 export async function AuthMidddleware(request: Request) {
     // Get auth bearer token from request headers
@@ -10,27 +7,12 @@ export async function AuthMidddleware(request: Request) {
         return false;
     }
 
-    // Check if the token is valid
-    const token = authHeader.split(' ')[1];
-    if (!token) {
+    const steamId = await verifySteamToken(authHeader);
+    if (!steamId) {
         return false;
     }
 
-    const decrypted = await decryptWithWebCrypto(token, getAppKey());
-    console.log(decrypted);
-
-    // Check if the decrypted token is empty
-    if (!decrypted) {
-        return false;
-    }
-
-    // Check if the decrypted token is valid
-    const tokenParts = decrypted.split('.');
-
-    // Check if the token has 3 parts
-    if (tokenParts.length !== 3) {
-        return false;
-    }
-
-    return true;
+    // Attach steamID to request object
+    request.headers.set('steamID', steamId.steamId);
+    return true;    
 }

@@ -23,7 +23,7 @@ const middlewareRegistry: Record<MiddlewareType, MiddlewareFn> = {
 }
 
 const routeMiddlewareMap: Record<string, MiddlewareType[]> = {
-    '/test': [MiddlewareType.Auth, MiddlewareType.Game],
+    '/api/game/upgrades': [MiddlewareType.Game],
 }
 
 const getMiddlewaresForPath = (pathname: string): MiddlewareType[] => {

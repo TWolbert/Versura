@@ -1,94 +1,43 @@
-// Helper functions to convert ArrayBuffer <-> base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
+export async function decryptWithWebCrypto(encryptedHex: string, expectedSecret: string): Promise<string> {
+  // Convert hex to binary
+  const encryptedData = hexToUint8Array(encryptedHex);
 
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-// Generate a 256-bit (32 byte) AES-GCM key
-export async function generateSymmetricKey(): Promise<CryptoKey> {
-  return crypto.subtle.generateKey(
-    { name: "AES-GCM", length: 256 },
-    true, // extractable
-    ["encrypt", "decrypt"]
-  );
-}
-
-// Export key to JWK for storage
-export async function exportKeyToJWK(key: CryptoKey): Promise<JsonWebKey> {
-  return crypto.subtle.exportKey("jwk", key);
-}
-
-// Encrypt plaintext with AES-GCM
-export async function encryptWithWebCrypto(plaintext: string, keyString: string): Promise<string> {
-  // Import key from stored JWK string
-  const jwk = JSON.parse(keyString);
-  const key = await crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "AES-GCM" },
-    false,
-    ["encrypt"]
-  );
-
+  // Derive key and IV from secret
   const encoder = new TextEncoder();
-  const data = encoder.encode(plaintext);
+  const secretBuffer = encoder.encode(expectedSecret);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', secretBuffer);
+  
+  const hash = new Uint8Array(hashBuffer);
+  const keyBytes = hash.slice(0, 16);
+  const ivBytes = hash.slice(16, 32);
 
-  // Generate a random 12-byte IV
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    data
+  // Import crypto key
+  const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-CBC' },
+      false,
+      ['decrypt']
   );
 
-  // Concatenate IV and ciphertext
-  const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-  combined.set(iv);
-  combined.set(new Uint8Array(ciphertext), iv.byteLength);
+  // Decrypt the token
+  const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv: ivBytes },
+      cryptoKey,
+      encryptedData
+  );
 
-  // Return Base64 encoded result
-  return arrayBufferToBase64(combined.buffer);
+  return new TextDecoder().decode(decryptedBuffer);
 }
 
-// Decrypt ciphertext created by encryptWithWebCrypto
-export async function decryptWithWebCrypto(encryptedData: string, keyString: string): Promise<string> {
-  // Import key from stored JWK string
-  const jwk = JSON.parse(keyString);
-  const key = await crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "AES-GCM" },
-    false,
-    ["decrypt"]
-  );
+function hexToUint8Array(hex: string): Uint8Array {
+  if (hex.length % 2 !== 0) {
+      throw new Error('Invalid hex string length');
+  }
 
-  const combinedBuffer = base64ToArrayBuffer(encryptedData);
-  const combined = new Uint8Array(combinedBuffer);
-
-  // Extract IV and ciphertext
-  const iv = combined.slice(0, 12);
-  const ciphertext = combined.slice(12);
-
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    ciphertext
-  );
-
-  const decoder = new TextDecoder();
-  return decoder.decode(decrypted);
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+      bytes[i/2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
 }
